@@ -39,12 +39,13 @@ class puppet_metrics_dashboard::profile::master::postgres_access (
 
   } else {
 
-    pe_postgresql::server::role { 'telegraf': }
-
-    pe_postgresql::server::database_grant { 'telegraf':
-      privilege => 'CONNECT',
-      db        => 'pe-puppetdb',
-      role      => 'telegraf',
+    puppet_enterprise::pg::ordinary_user{ 'telegraf':
+      user_name         => 'telegraf',
+      database          => 'pe-puppetdb',
+      database_password => '',
+      write_access      => false,
+      db_owner          => 'pe-postgres',
+      replication_user  => 'pe-ha-replication',
     }
 
     ##If this fact doesn't exist then postgres is probably at v9.4
