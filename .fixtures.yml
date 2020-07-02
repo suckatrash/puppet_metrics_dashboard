@@ -4,6 +4,8 @@ fixtures:
     apt: https://github.com/puppetlabs/puppetlabs-apt.git
     inifile: https://github.com/puppetlabs/puppetlabs-inifile.git
     grafana: https://github.com/voxpupuli/puppet-grafana.git
+    postgres: https://github.com/puppetlabs/puppetlabs-postgresql.git
+    concat: https://github.com/puppetlabs/puppetlabs-concat.git
     yumrepo:
       repo: https://github.com/puppetlabs/puppetlabs-yumrepo_core.git
       puppet_version: ">= 6.0.0"

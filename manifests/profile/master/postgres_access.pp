@@ -44,13 +44,15 @@ class puppet_metrics_dashboard::profile::master::postgres_access (
 
   } else {
 
-    pe_postgresql::server::role { 'telegraf': }
-
-    pe_postgresql::server::database_grant { 'telegraf':
-      privilege => 'CONNECT',
-      db        => 'pe-puppetdb',
-      role      => 'telegraf',
-    }
+    #postgresql::server::grant { 'telegraf':
+    #  privilege        => 'CONNECT',
+    #  db               => 'pe-puppetdb',
+    #  psql_user        => 'telegraf',
+    #  psql_db          => 'pe-puppetdb',
+    #  role             => 'telegraf',
+    #  port             => '5432',
+    #  connect_settings => '',
+    #}
 
     # If the fact doesn't exist then PostgreSQL is probably version 9.4.
 
@@ -60,14 +62,29 @@ class puppet_metrics_dashboard::profile::master::postgres_access (
       $postgres_version = '9.4'
     }
 
-    puppet_enterprise::pg::cert_whitelist_entry { 'allow-telegraf-access':
-      user                          => 'telegraf',
-      database                      => 'pe-puppetdb',
-      allowed_client_certname       => $_telegraf_host,
-      pg_ident_conf_path            => "/opt/puppetlabs/server/data/postgresql/${postgres_version}/data/pg_ident.conf",
-      ip_mask_allow_all_users_ssl   => '0.0.0.0/0',
-      ipv6_mask_allow_all_users_ssl => '::/0',
+    class { 'postgresql::server':
+      service_manage => false,
     }
 
+    postgresql::server::grant_role { 'telegraf':
+      group => 'pe-puppetdb',
+    }
+
+    postgresql::server::pg_hba_rule { 'telegraf':
+      type               => 'hostssl',
+      user               => 'telegraf',
+      auth_method        => 'cert',
+      address            => '0.0.0.0/0',
+      database           => 'pe-puppetdb',
+      postgresql_version => $postgres_version,
+      target             => "/opt/puppetlabs/server/data/postgresql/${postgres_version}/data/pg_hba.conf",
+    }
+
+    postgresql::server::pg_ident_rule { 'telegraf':
+      map_name          => 'puppetdb-telegraf-map',
+      system_username   => $_telegraf_host,
+      database_username => 'telegraf',
+      target            => "/opt/puppetlabs/server/data/postgresql/${postgres_version}/data/pg_ident.conf",
+    }
   }
 }
